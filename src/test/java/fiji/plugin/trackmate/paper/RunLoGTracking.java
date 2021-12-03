@@ -57,8 +57,7 @@ public class RunLoGTracking
 		final ImagePlus imp = IJ.openImage( imFile.getAbsolutePath() );
 
 		final Model model = new Model();
-		final Settings settings = new Settings();
-		settings.setFrom( imp );
+		final Settings settings = new Settings( imp );
 
 		final TrackMate trackmate = new TrackMate( model, settings );
 		model.setLogger( Logger.VOID_LOGGER );

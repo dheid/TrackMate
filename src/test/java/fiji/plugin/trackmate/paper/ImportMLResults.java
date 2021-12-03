@@ -118,8 +118,7 @@ public class ImportMLResults
 		final ImagePlus imp = IJ.openImage( Paths.get( rootDataFolder, category, imageFileName ).toString() );
 
 		// Create settings object.
-		final Settings settings = new Settings();
-		settings.setFrom( imp );
+		final Settings settings = new Settings( imp );
 		settings.addAllAnalyzers();
 		settings.initialSpotFilterValue = 0.;
 		settings.detectorFactory = new ManualDetectorFactory<>();
