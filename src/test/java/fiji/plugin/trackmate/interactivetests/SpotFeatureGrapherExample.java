@@ -23,9 +23,10 @@ package fiji.plugin.trackmate.interactivetests;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JFrame;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
@@ -52,15 +53,25 @@ public class SpotFeatureGrapherExample
 		final File file = new File( AppUtils.getBaseDirectory( TrackMate.class ), "samples/FakeTracks.xml" );
 		final TmXmlReader reader = new TmXmlReader( file );
 		final Model model = reader.getModel();
+		final SelectionModel selectionModel = new SelectionModel( model );
 
-		final HashSet< String > Y = new HashSet<>( 1 );
+		final List< String > Y = new ArrayList<>( 1 );
 		Y.add( Spot.POSITION_T );
 		final List< Spot > spots = new ArrayList<>( model.getSpots().getNSpots( true ) );
 		for ( final Iterator< Spot > it = model.getSpots().iterator( true ); it.hasNext(); )
 			spots.add( it.next() );
 
-		final SpotFeatureGrapher grapher = new SpotFeatureGrapher( Spot.POSITION_X, Y, spots, model, DisplaySettings.defaultStyle().copy() );
-		grapher.render();
+		final SpotFeatureGrapher grapher = new SpotFeatureGrapher(
+				spots,
+				Spot.POSITION_X,
+				Y,
+				model,
+				selectionModel,
+				DisplaySettings.defaultStyle().copy(),
+				true );
+		final JFrame frame = grapher.render();
+		frame.setLocationRelativeTo( null );
+		frame.setVisible( true );
 
 		final TrackIndexAnalyzer analyzer = new TrackIndexAnalyzer();
 		analyzer.process( model.getTrackModel().trackIDs( true ), model );

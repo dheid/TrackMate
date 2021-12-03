@@ -32,10 +32,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 
 import javax.swing.Box;
@@ -68,7 +66,7 @@ public class FeaturePlotSelectionPanel extends JPanel
 	 */
 	public static interface PlotAction
 	{
-		public void plot( String xKey, Set< String > yKeys );
+		public void plot( String xKey, List< String > yKeys );
 	}
 
 	private static final Dimension BUTTON_SIZE = new Dimension( 24, 24 );
@@ -83,9 +81,9 @@ public class FeaturePlotSelectionPanel extends JPanel
 
 	private final Stack< Component > struts = new Stack<>();
 
-	private final List< String > features;
+	private List< String > features;
 
-	private final Map< String, String > featureNames;
+	private Map< String, String > featureNames;
 
 	/*
 	 * CONSTRUCTOR
@@ -183,12 +181,33 @@ public class FeaturePlotSelectionPanel extends JPanel
 		// Listener.
 		plotButton.addActionListener( e -> {
 			final String sKey = this.features.get( cmbboxXFeature.getSelectedIndex() );
-			final Set< String > yKeys = new HashSet<>( comboBoxes.size() );
+			final List< String > yKeys = new ArrayList<>( comboBoxes.size() );
 			for ( final JComboBox< String > box : comboBoxes )
 				yKeys.add( this.features.get( box.getSelectedIndex() ) );
 
 			plotAction.plot( sKey, yKeys );
 		} );
+	}
+
+	public void setFeatures( final Collection< String > features, final Map< String, String > featureNames )
+	{
+		this.features = new ArrayList<>( features );
+		this.featureNames = featureNames;
+		final Object previousKey = cmbboxXFeature.getSelectedItem();
+
+		final ComboBoxModel< String > cmbboxXFeatureModel = new DefaultComboBoxModel<>(
+				TMUtils.getArrayFromMaping( features, featureNames ).toArray( new String[] {} ) );
+		cmbboxXFeature.setModel( cmbboxXFeatureModel );
+		cmbboxXFeature.setSelectedItem( previousKey );
+
+		for ( final JComboBox< String > cb : comboBoxes )
+		{
+			final Object previousYKey = cb.getSelectedItem();
+			final ComboBoxModel< String > cmbboxYFeatureModel = new DefaultComboBoxModel<>(
+					TMUtils.getArrayFromMaping( features, featureNames ).toArray( new String[] {} ) );
+			cb.setModel( cmbboxYFeatureModel );
+			cb.setSelectedItem( previousYKey );
+		}
 	}
 
 	/*

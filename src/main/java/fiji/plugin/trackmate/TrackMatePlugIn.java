@@ -32,11 +32,13 @@ import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
 import fiji.plugin.trackmate.gui.wizard.WizardSequence;
+import fiji.plugin.trackmate.io.SettingsPersistence;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.Prefs;
 import ij.WindowManager;
 import ij.plugin.PlugIn;
 
@@ -51,7 +53,7 @@ public class TrackMatePlugIn implements PlugIn
 		if ( imagePath != null && imagePath.length() > 0 )
 		{
 			imp = IJ.openImage( imagePath );
-			if ( null == imp.getOriginalFileInfo() )
+			if ( imp == null || null == imp.getOriginalFileInfo() )
 			{
 				IJ.error( TrackMate.PLUGIN_NAME_STR + " v" + TrackMate.PLUGIN_NAME_VERSION, "Could not load image with path " + imagePath + "." );
 				return;
@@ -145,8 +147,9 @@ public class TrackMatePlugIn implements PlugIn
 	 */
 	protected Settings createSettings( final ImagePlus imp )
 	{
-		final Settings ls = new Settings();
-		ls.setFrom( imp );
+		// Persistence.
+		final Settings ls = SettingsPersistence.readLastUsedSettings( imp, Logger.DEFAULT_LOGGER );
+		// Force adding analyzers found at runtime
 		ls.addAllAnalyzers();
 		return ls;
 	}
@@ -167,7 +170,12 @@ public class TrackMatePlugIn implements PlugIn
 		final String timeUnits = settings.imp.getCalibration().getTimeUnit();
 		model.setPhysicalUnits( spaceUnits, timeUnits );
 
-		return new TrackMate( model, settings );
+		final TrackMate trackmate = new TrackMate( model, settings );
+
+		// Set the num of threads from IJ prefs.
+		trackmate.setNumThreads( Prefs.getThreads() );
+
+		return trackmate;
 	}
 
 	protected DisplaySettings createDisplaySettings()

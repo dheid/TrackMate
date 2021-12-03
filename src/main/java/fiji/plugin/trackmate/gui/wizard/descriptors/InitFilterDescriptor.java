@@ -31,6 +31,7 @@ import fiji.plugin.trackmate.features.FeatureUtils;
 import fiji.plugin.trackmate.gui.components.InitFilterPanel;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackMateObject;
 import fiji.plugin.trackmate.gui.wizard.WizardPanelDescriptor;
+import fiji.plugin.trackmate.io.SettingsPersistence;
 
 public class InitFilterDescriptor extends WizardPanelDescriptor
 {
@@ -44,7 +45,7 @@ public class InitFilterDescriptor extends WizardPanelDescriptor
 		super( KEY );
 		this.trackmate = trackmate;
 		final Function< String, double[] > valuesCollector = key -> FeatureUtils.collectFeatureValues(
-				Spot.QUALITY, TrackMateObject.SPOTS, trackmate.getModel(), trackmate.getSettings(), false );
+				Spot.QUALITY, TrackMateObject.SPOTS, trackmate.getModel(), false );
 		this.targetPanel = new InitFilterPanel( filter, valuesCollector );
 	}
 
@@ -69,5 +70,8 @@ public class InitFilterDescriptor extends WizardPanelDescriptor
 	{
 		final InitFilterPanel component = ( InitFilterPanel ) targetPanel;
 		trackmate.getSettings().initialSpotFilterValue = component.getFeatureThreshold().value;
+
+		// Settings persistence.
+		SettingsPersistence.saveLastUsedSettings( trackmate.getSettings(), trackmate.getModel().getLogger() );
 	}
 }

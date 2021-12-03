@@ -30,10 +30,13 @@ import javax.swing.JFrame;
 
 import org.scijava.util.VersionUtils;
 
+import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactoryBase;
+import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.gui.GuiUtils;
 import fiji.plugin.trackmate.gui.components.LogPanel;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
-import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
+import fiji.plugin.trackmate.gui.wizard.WizardSequence;
 import fiji.plugin.trackmate.gui.wizard.descriptors.ConfigureViewsDescriptor;
 import fiji.plugin.trackmate.gui.wizard.descriptors.LogPanelDescriptor2;
 import fiji.plugin.trackmate.gui.wizard.descriptors.SomeDialogDescriptor;
@@ -46,17 +49,9 @@ import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
-import ij.plugin.PlugIn;
 
-public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
+public class LoadTrackMatePlugIn extends TrackMatePlugIn
 {
-
-	private static final String KEY = "LoadPlugin";
-
-	public LoadTrackMatePlugIn()
-	{
-		super( KEY, new LogPanel() );
-	}
 
 	/**
 	 * Loads a TrackMate file in the GUI.
@@ -76,6 +71,7 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 		GuiUtils.setSystemLookAndFeel();
 
 		final Logger logger = Logger.IJ_LOGGER; // logPanel.getLogger();
+		File file = SomeDialogDescriptor.file;
 		if ( null == filePath || filePath.length() == 0 )
 		{
 
@@ -87,7 +83,8 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 				file = new File( parent2 != null ? parent2 : parent != null ? parent : folder, "TrackMateData.xml" );
 			}
 			final File tmpFile = IOUtils.askForFileForLoading( file, "Load a TrackMate XML file", null, logger );
-			if ( null == tmpFile ) { return; }
+			if ( null == tmpFile )
+				return;
 			file = tmpFile;
 		}
 		else
@@ -144,7 +141,9 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 		 * Read image.
 		 */
 
-		final ImagePlus imp = reader.readImage();
+		ImagePlus imp = reader.readImage();
+		if ( null == imp )
+			imp = ViewUtils.makeEmpytImagePlus( model );
 
 		/*
 		 * Read settings.
@@ -154,14 +153,39 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 		if ( !reader.isReadingOk() )
 			logger.error( "Problem reading the settings:\n" + reader.getErrorMessage() );
 
-		if ( null == settings.imp )
-			settings.imp = ViewUtils.makeEmpytImagePlus( model );
+		/*
+		 * Declare the analyzers that are in the settings to the model. This is
+		 * required when we are loading a file that does not have the analyzer
+		 * presents at runtime declared in the settings section of the file.
+		 */
+		for ( final SpotAnalyzerFactoryBase< ? > analyzer : settings.getSpotAnalyzerFactories() )
+			model.getFeatureModel().declareSpotFeatures(
+					analyzer.getFeatures(),
+					analyzer.getFeatureNames(),
+					analyzer.getFeatureShortNames(),
+					analyzer.getFeatureDimensions(),
+					analyzer.getIsIntFeature() );
+
+		for ( final EdgeAnalyzer analyzer : settings.getEdgeAnalyzers() )
+			model.getFeatureModel().declareEdgeFeatures(
+					analyzer.getFeatures(),
+					analyzer.getFeatureNames(),
+					analyzer.getFeatureShortNames(),
+					analyzer.getFeatureDimensions(),
+					analyzer.getIsIntFeature() );
+		for ( final TrackAnalyzer analyzer : settings.getTrackAnalyzers() )
+			model.getFeatureModel().declareTrackFeatures(
+					analyzer.getFeatures(),
+					analyzer.getFeatureNames(),
+					analyzer.getFeatureShortNames(),
+					analyzer.getFeatureDimensions(),
+					analyzer.getIsIntFeature() );
 
 		/*
 		 * Create TrackMate.
 		 */
 
-		final TrackMate trackmate = new TrackMate( model, settings );
+		final TrackMate trackmate = createTrackMate( model, settings );
 
 		// Hook actions
 		postRead( trackmate );
@@ -181,26 +205,26 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 		// Main view.
 		final TrackMateModelView displayer = new HyperStackDisplayer( model, selectionModel, settings.imp, displaySettings );
 		displayer.render();
-		
+
 		// GUI state
 		String panelIdentifier = reader.getGUIState();
-		
+
 		if ( null == panelIdentifier )
 			panelIdentifier = ConfigureViewsDescriptor.KEY;
 
 		// Wizard.
-		final TrackMateWizardSequence sequence = new TrackMateWizardSequence( trackmate, selectionModel, displaySettings );
+		final WizardSequence sequence = createSequence( trackmate, selectionModel, displaySettings );
 		sequence.setCurrent( panelIdentifier );
 		final JFrame frame = sequence.run( "TrackMate on " + settings.imp.getShortTitle() );
 		frame.setIconImage( TRACKMATE_ICON.getImage() );
 		GuiUtils.positionWindow( frame, settings.imp.getWindow() );
 		frame.setVisible( true );
 
-		// Text		
+		// Text
 		final LogPanelDescriptor2 logDescriptor = ( LogPanelDescriptor2 ) sequence.logDescriptor();
 		final LogPanel logPanel = ( LogPanel ) logDescriptor.getPanelComponent();
 		final Logger logger2 = logPanel.getLogger();
-		
+
 		logger2.log( "Session log saved in the file:\n"
 				+ "--------------------\n"
 				+ logText
@@ -253,7 +277,7 @@ public class LoadTrackMatePlugIn extends SomeDialogDescriptor implements PlugIn
 		ImageJ.main( args );
 		final LoadTrackMatePlugIn plugIn = new LoadTrackMatePlugIn();
 //		plugIn.run( "samples/FakeTracks.xml" );
-//		plugIn.run( "samples/MAX_Merged.xml" );
-		plugIn.run( "" );
+		plugIn.run( "samples/MAX_Merged.xml" );
+//		plugIn.run( "" );
 	}
 }

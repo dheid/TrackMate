@@ -45,6 +45,7 @@ import fiji.plugin.trackmate.action.ExportStatsTablesAction;
 import fiji.plugin.trackmate.detection.ManualDetectorFactory;
 import fiji.plugin.trackmate.detection.SpotDetectorFactoryBase;
 import fiji.plugin.trackmate.features.FeatureFilter;
+import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.gui.components.ConfigurationPanel;
 import fiji.plugin.trackmate.gui.components.FeatureDisplaySelector;
 import fiji.plugin.trackmate.gui.components.LogPanel;
@@ -121,6 +122,10 @@ public class TrackMateWizardSequence implements WizardSequence
 		final Settings settings = trackmate.getSettings();
 		final Model model = trackmate.getModel();
 
+		// Listen to changes in the model and update features accordingly.
+		final ModelFeatureUpdater modelFeatureUpdater = new ModelFeatureUpdater( model, settings );
+		modelFeatureUpdater.setNumThreads( trackmate.getNumThreads() );
+
 		final LogPanel logPanel = new LogPanel();
 		final Logger logger = logPanel.getLogger();
 		model.setLogger( logger );
@@ -140,13 +145,19 @@ public class TrackMateWizardSequence implements WizardSequence
 		executeTrackingDescriptor = new ExecuteTrackingDescriptor( trackmate, logPanel );
 		trackFilterDescriptor = new TrackFilterDescriptor( trackmate, trackFilters, featureSelector );
 		configureViewsDescriptor = new ConfigureViewsDescriptor( displaySettings, featureSelector, new LaunchTrackSchemeAction(), new ShowTrackTablesAction(), new ShowSpotTableAction(), model.getSpaceUnits() );
-		grapherDescriptor = new GrapherDescriptor( trackmate, displaySettings );
+		grapherDescriptor = new GrapherDescriptor( trackmate, selectionModel, displaySettings );
 		actionChooserDescriptor = new ActionChooserDescriptor( new ActionProvider(), trackmate, selectionModel, displaySettings );
 		saveDescriptor = new SaveDescriptor( trackmate, displaySettings, this );
 
 		this.next = getForwardSequence();
 		this.previous = getBackwardSequence();
 		current = startDialogDescriptor;
+	}
+
+	@Override
+	public void onClose()
+	{
+		trackmate.getModel().setLogger( Logger.IJ_LOGGER );
 	}
 
 	@Override

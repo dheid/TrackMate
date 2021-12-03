@@ -155,7 +155,6 @@ public class FeatureUtils
 	 * @param featureKey
 	 * @param target
 	 * @param model
-	 * @param settings
 	 * @param visibleOnly
 	 * @return a new <code>double[]</code> array containing the numerical
 	 *         feature values.
@@ -164,7 +163,6 @@ public class FeatureUtils
 			final String featureKey,
 			final TrackMateObject target,
 			final Model model,
-			final Settings settings,
 			final boolean visibleOnly )
 	{
 		final FeatureModel fm = model.getFeatureModel();
@@ -372,7 +370,7 @@ public class FeatureUtils
 		}
 	}
 
-	public static final double[] autoMinMax( final Model model, final Settings settings, final TrackMateObject type, final String feature )
+	public static final double[] autoMinMax( final Model model, final TrackMateObject type, final String feature )
 	{
 		switch ( type )
 		{
@@ -383,7 +381,7 @@ public class FeatureUtils
 		case SPOTS:
 		case TRACKS:
 		{
-			final double[] values = collectFeatureValues( feature, type, model, settings, true );
+			final double[] values = collectFeatureValues( feature, type, model, true );
 			double min = Double.POSITIVE_INFINITY;
 			double max = Double.NEGATIVE_INFINITY;
 			for ( final double val : values )

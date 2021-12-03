@@ -23,10 +23,12 @@ package fiji.plugin.trackmate.gui.displaysettings;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
@@ -40,6 +42,7 @@ import java.util.function.Supplier;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -52,15 +55,19 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.ListCellRenderer;
 import javax.swing.SpinnerListModel;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
 import org.drjekyll.fontchooser.FontDialog;
 
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.gui.Fonts;
 import fiji.plugin.trackmate.gui.GuiUtils;
+import fiji.plugin.trackmate.gui.Icons;
 import fiji.plugin.trackmate.gui.components.CategoryJComboBox;
 import fiji.plugin.trackmate.gui.components.FeatureDisplaySelector;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackMateObject;
@@ -211,19 +218,19 @@ public class StyleElements
 	{
 		return new FeatureElement( label )
 		{
-			
+
 			@Override
 			public void setValue( final TrackMateObject type, final String feature )
 			{
 				set.accept( type, feature );
 			}
-			
+
 			@Override
 			public TrackMateObject getType()
 			{
 				return typeGet.get();
 			}
-			
+
 			@Override
 			public String getFeature()
 			{
@@ -323,8 +330,7 @@ public class StyleElements
 	public interface StyleElement
 	{
 		public default void update()
-		{
-		}
+		{}
 
 		public void accept( StyleElementVisitor visitor );
 	}
@@ -931,6 +937,8 @@ public class StyleElements
 	{
 		final SpinnerListModel model = new SpinnerListModel( element.getValues() );
 		final JSpinner spinner = new JSpinner( model );
+		spinner.setFont( Fonts.SMALL_FONT );
+		( ( DefaultEditor ) spinner.getEditor() ).getTextField().setEditable( false );
 		model.setValue( element.getValue() );
 		model.addChangeListener( e -> element.setValue( ( E ) model.getValue() ) );
 		element.onSet( e -> {
@@ -938,6 +946,20 @@ public class StyleElements
 				model.setValue( e );
 		} );
 		return spinner;
+	}
+
+	@SuppressWarnings( "unchecked" )
+	public static < E > JComboBox< E > linkedComboBoxEnumSelector( final EnumElement< E > element )
+	{
+		final DefaultComboBoxModel< E > model = new DefaultComboBoxModel<>( element.values );
+		final JComboBox< E > cb = new JComboBox<>( model );
+		cb.setFont( Fonts.SMALL_FONT );
+		cb.addActionListener( e -> element.setValue( ( E ) model.getSelectedItem() ) );
+		element.onSet( e -> {
+			if ( e != model.getSelectedItem() )
+				model.setSelectedItem( e );
+		} );
+		return cb;
 	}
 
 	public static JFormattedTextField linkedFormattedTextField( final DoubleElement element )
@@ -956,7 +978,7 @@ public class StyleElements
 		return ftf;
 	}
 
-	public static JButton linkedFontButton( final FontElement element )
+	public static JButton linkedFontButton( final FontElement element, final Window parent )
 	{
 		final JButton btn = new JButton( "Select font" );
 		btn.setFont( element.get() );
@@ -965,8 +987,16 @@ public class StyleElements
 			if ( !font.equals( btn.getFont() ) )
 				btn.setFont( font );
 		} );
-		btn.addActionListener( e -> FontDialog.showDialog( btn ) );
-
+		btn.addActionListener( e -> {
+			final FontDialog dialog = new FontDialog( parent, "Select font for TrackMate display", ModalityType.APPLICATION_MODAL );
+			dialog.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
+			dialog.setSelectedFont( btn.getFont() );
+			GuiUtils.positionWindow( dialog, parent );
+			dialog.setIconImage( Icons.TRACKMATE_ICON.getImage() );
+			dialog.setVisible( true );
+			if ( !dialog.isCancelSelected() )
+				btn.setFont( dialog.getSelectedFont() );
+		} );
 		return btn;
 	}
 }

@@ -288,7 +288,8 @@ public class ConfigureViewsPanel extends JPanel
 		gbcLblFadeRange.gridy = 1;
 		panelTrackOptions.add( lblFadeRange, gbcLblFadeRange );
 
-		final SpinnerNumberModel fadeTrackDepthModel = new SpinnerNumberModel( ds.getFadeTrackRange(), 1, 1000, 1 );
+		final int fadeTrackRange = Math.min( 1000, Math.max( 1, ds.getFadeTrackRange() ) );
+		final SpinnerNumberModel fadeTrackDepthModel = new SpinnerNumberModel( fadeTrackRange, 1, 1000, 1 );
 		final JSpinner spinnerFadeRange = new JSpinner( fadeTrackDepthModel );
 		spinnerFadeRange.setFont( SMALL_FONT );
 		final GridBagConstraints gbcSpinnerFadeRange = new GridBagConstraints();
@@ -411,6 +412,8 @@ public class ConfigureViewsPanel extends JPanel
 		chkboxDisplayTracks.addActionListener( e -> ds.setTrackVisible( chkboxDisplayTracks.isSelected() ) );
 		chkboxFadeTracks.addActionListener( e -> ds.setFadeTracks( chkboxFadeTracks.isSelected() ) );
 		fadeTrackDepthModel.addChangeListener( e -> ds.setFadeTrackRange( fadeTrackDepthModel.getNumber().intValue() ) );
+		numberModelDrawingZDepth.addChangeListener( e -> ds.setZDrawingDepth( ( ( Number ) numberModelDrawingZDepth.getValue() ).doubleValue() ) );
+		chckbxLimitZDepth.addActionListener( e -> ds.setZDrawingDepthLimited( chckbxLimitZDepth.isSelected() ) );
 
 		/*
 		 * Set current values.

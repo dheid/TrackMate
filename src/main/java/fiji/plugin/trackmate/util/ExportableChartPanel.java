@@ -31,18 +31,19 @@ import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYDataset;
 
 import com.itextpdf.text.DocumentException;
 
+import fiji.plugin.trackmate.features.ModelDataset;
+import fiji.plugin.trackmate.gui.GuiUtils;
 import ij.IJ;
-import ij.measure.ResultsTable;
 
 public class ExportableChartPanel extends ChartPanel
 {
@@ -60,7 +61,8 @@ public class ExportableChartPanel extends ChartPanel
 		super( chart );
 	}
 
-	public ExportableChartPanel( final JFreeChart chart,
+	public ExportableChartPanel(
+			final JFreeChart chart,
 			final boolean properties,
 			final boolean save,
 			final boolean print,
@@ -114,7 +116,7 @@ public class ExportableChartPanel extends ChartPanel
 		return menu;
 	}
 
-	public void createDataTable()
+	private void createDataTable()
 	{
 		XYPlot plot = null;
 		try
@@ -126,39 +128,48 @@ public class ExportableChartPanel extends ChartPanel
 			return;
 		}
 
-		final String xColumnName = plot.getDomainAxis().getLabel();
-
-		final ResultsTable table = new ResultsTable();
-		final int nPoints = plot.getDataset( 0 ).getItemCount( 0 );
-		for ( int k = 0; k < nPoints; k++ )
+		final int nSets = plot.getDatasetCount();
+		for ( int i = 0; i < nSets; i++ )
 		{
-			table.incrementCounter();
+			final ModelDataset dataset = ( ModelDataset ) plot.getDataset( i );
+			final String xFeature = dataset.getXFeature();
+			final String xStr = plot.getDomainAxis().getLabel();
+			final String xFeatureName = labelFromStr( xStr );
+			final String xUnits = unitsFromStr( xStr );
+			final String tableTitle = plot.getChart().getTitle().getText();
+			final String yUnits = unitsFromStr( plot.getRangeAxis().getLabel() );
 
-			final double xVal = plot.getDataset( 0 ).getXValue( 0, k );
-			table.addValue( xColumnName, xVal );
-
-			final int nSets = plot.getDatasetCount();
-			for ( int i = 0; i < nSets; i++ )
-			{
-
-				final XYDataset dataset = plot.getDataset( i );
-				if ( dataset instanceof XYEdgeSeriesCollection )
-					continue;
-
-				final int nSeries = dataset.getSeriesCount();
-				for ( int j = 0; j < nSeries; j++ )
-				{
-
-					@SuppressWarnings( "rawtypes" )
-					final Comparable seriesKey = dataset.getSeriesKey( j );
-					final String yColumnName = seriesKey.toString() + "(" + plot.getRangeAxis().getLabel() + ")";
-					final double yVal = dataset.getYValue( j, k );
-					table.addValue( yColumnName, yVal );
-				}
-
-			}
+			final ExportableChartValueTable table = new ExportableChartValueTable(
+					dataset,
+					xFeature,
+					xFeatureName,
+					xUnits,
+					tableTitle,
+					yUnits );
+			GuiUtils.positionWindow( table, SwingUtilities.getWindowAncestor( this ) );
+			table.setVisible( true );
 		}
-		table.show( getChart().getTitle().getText() );
+	}
+
+	private static final String unitsFromStr( final String str )
+	{
+		final int i1 = str.lastIndexOf( '(' );
+		final int i2 = str.lastIndexOf( ')' );
+		if ( i1 >= 0 && i2 >= 0 && i2 > ( i1 + 1 ) )
+			return str.substring( i1 + 1, i2 );
+		if ( i2 == i1 + 1 )
+			return "";
+		return str;
+	}
+
+	private static final String labelFromStr( final String str )
+	{
+		final int i = str.indexOf( '(' );
+		if ( i <= 0 )
+			return str;
+		if ( i > 1 )
+			return str.substring( 0, i - 1 );
+		return str.substring( 0, i );
 	}
 
 	/**
@@ -180,20 +191,10 @@ public class ExportableChartPanel extends ChartPanel
 
 			final Frame frame = ( Frame ) dialogParent;
 			final FileDialog dialog = new FileDialog( frame, "Export chart to PNG, PDF or SVG", FileDialog.SAVE );
-			String defaultDir = null;
-			if ( currentDir != null )
-				defaultDir = currentDir.getPath();
-			
-			dialog.setDirectory( defaultDir );
-			final FilenameFilter filter = new FilenameFilter()
-			{
-				@Override
-				public boolean accept( final File dir, final String name )
-				{
-					return name.endsWith( ".png" ) || name.endsWith( ".pdf" ) || name.endsWith( ".svg" );
-				}
-			};
+			final FilenameFilter filter = ( dir, name ) -> name.endsWith( ".png" ) || name.endsWith( ".pdf" ) || name.endsWith( ".svg" );
 			dialog.setFilenameFilter( filter );
+			dialog.setDirectory( currentDir == null ? null : currentDir.getAbsolutePath() );
+			dialog.setFile( getChart().getTitle().getText().replaceAll( "\\.+$", "" ) + ".pdf" );
 			dialog.setVisible( true );
 			final String selectedFile = dialog.getFile();
 			if ( null == selectedFile )
@@ -205,52 +206,12 @@ public class ExportableChartPanel extends ChartPanel
 		else
 		{
 			final JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle( "Export chart to PNG, PDF or SVG" );
 			fileChooser.setCurrentDirectory( currentDir );
-			fileChooser.addChoosableFileFilter( new FileFilter()
-			{
-
-				@Override
-				public String getDescription()
-				{
-					return "PNG Image File";
-				}
-
-				@Override
-				public boolean accept( final File f )
-				{
-					return f.getName().toLowerCase().endsWith( ".png" );
-				}
-			} );
-			fileChooser.addChoosableFileFilter( new FileFilter()
-			{
-
-				@Override
-				public String getDescription()
-				{
-					return "Portable Document File (PDF)";
-				}
-
-				@Override
-				public boolean accept( final File f )
-				{
-					return f.getName().toLowerCase().endsWith( ".pdf" );
-				}
-			} );
-			fileChooser.addChoosableFileFilter( new FileFilter()
-			{
-
-				@Override
-				public String getDescription()
-				{
-					return "Scalable Vector Graphics (SVG)";
-				}
-
-				@Override
-				public boolean accept( final File f )
-				{
-					return f.getName().toLowerCase().endsWith( ".svg" );
-				}
-			} );
+			fileChooser.addChoosableFileFilter( new FileNameExtensionFilter("PNG Image File", "png" ) );
+			fileChooser.addChoosableFileFilter( new FileNameExtensionFilter("Portable Document File (PDF)", "pdf" ) );
+			fileChooser.addChoosableFileFilter( new FileNameExtensionFilter( "Scalable Vector Graphics (SVG)", "svg" ) );
+			fileChooser.setSelectedFile( new File( currentDir, getChart().getTitle().getText().replaceAll( "\\.+$", "" ) + ".pdf" ) );
 			final int option = fileChooser.showSaveDialog( this );
 			if ( option != JFileChooser.APPROVE_OPTION )
 				return;
@@ -258,45 +219,20 @@ public class ExportableChartPanel extends ChartPanel
 			file = fileChooser.getSelectedFile();
 			currentDir = fileChooser.getCurrentDirectory();
 		}
-
-		if ( file.getPath().endsWith( ".png" ) )
+		try
 		{
-			try
-			{
+			if ( file.getPath().endsWith( ".png" ) )
 				ChartUtils.saveChartAsPNG( file, getChart(), getWidth(), getHeight() );
-			}
-			catch ( final IOException e )
-			{
-				e.printStackTrace();
-			}
+			else if ( file.getPath().endsWith( ".pdf" ) )
+				ChartExporter.exportChartAsPDF( file, getChart(), getWidth(), getHeight() );
+			else if ( file.getPath().endsWith( ".svg" ) )
+				ChartExporter.exportChartAsSVG( file, getChart(), getWidth(), getHeight() );
+			else
+				IJ.error( "Invalid file extension.", "Please choose a filename with one of the 3 supported extension: .png, .pdf or .svg." );
 		}
-		else if ( file.getPath().endsWith( ".pdf" ) )
+		catch ( final IOException | DocumentException e )
 		{
-			try
-			{
-				ChartExporter.exportChartAsPDF( getChart(), getBounds(), file );
-			}
-			catch ( final DocumentException | IOException e )
-			{
-				e.printStackTrace();
-			}
-
-		}
-		else if ( file.getPath().endsWith( ".svg" ) )
-		{
-			try
-			{
-				ChartExporter.exportChartAsSVG( getChart(), getBounds(), file );
-			}
-			catch ( final IOException e )
-			{
-				e.printStackTrace();
-			}
-		}
-		else
-		{
-			IJ.error( "Invalid file extension.", "Please choose a filename with one of the 3 supported extension: .png, .pdf or .svg." );
+			e.printStackTrace();
 		}
 	}
-
 }

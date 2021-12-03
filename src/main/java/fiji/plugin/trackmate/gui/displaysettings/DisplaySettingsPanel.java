@@ -34,11 +34,11 @@ import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.label;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedCheckBox;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedColorButton;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedColormapChooser;
+import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedComboBoxEnumSelector;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedFeatureSelector;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedFontButton;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedFormattedTextField;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedSliderPanel;
-import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.linkedSpinnerEnumSelector;
 import static fiji.plugin.trackmate.gui.displaysettings.StyleElements.separator;
 
 import java.awt.GridBagConstraints;
@@ -55,6 +55,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import com.itextpdf.text.Font;
 
@@ -177,7 +178,7 @@ public class DisplaySettingsPanel extends JPanel
 					public < E > void visit( final EnumElement< E > element )
 					{
 						addToLayout(
-								linkedSpinnerEnumSelector( element ),
+								linkedComboBoxEnumSelector( element ),
 								new JLabel( element.getLabel() ) );
 					}
 
@@ -193,7 +194,7 @@ public class DisplaySettingsPanel extends JPanel
 					public void visit( final FontElement element )
 					{
 						addToLayout(
-								linkedFontButton( element ),
+								linkedFontButton( element, SwingUtilities.getWindowAncestor( DisplaySettingsPanel.this ) ),
 								new JLabel( element.getLabel() ) );
 					}
 

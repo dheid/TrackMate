@@ -5,17 +5,17 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>30.0.0</version>
+		<version>31.1.0</version>
 		<relativePath />
 	</parent>
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>TrackMate</artifactId>
-	<version>7.0.1-SNAPSHOT</version>
+	<version>7.4.1-SNAPSHOT</version>
 
 	<name>TrackMate</name>
 	<description>TrackMate plugin for Fiji.</description>
-	<url>https://imagej.net/TrackMate</url>
+	<url>https://imagej.net/plugins/trackmate</url>
 	<inceptionYear>2010</inceptionYear>
 	<organization>
 		<name>Fiji</name>
@@ -33,7 +33,7 @@
 		<developer>
 			<id>tinevez</id>
 			<name>Jean-Yves Tinevez</name>
-			<url>https://imagej.net/User:JeanYvesTinevez</url>
+			<url>https://imagej.net/people/tinevez</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
@@ -47,7 +47,7 @@
 		<developer>
 			<id>ctrueden</id>
 			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
+			<url>https://imagej.net/people/ctrueden</url>
 			<roles>
 				<role>maintainer</role>
 			</roles>
@@ -56,57 +56,57 @@
 	<contributors>
 		<contributor>
 			<name>Nick Perry</name>
-			<url>https://imagej.net/User:NicholasPerry</url>
+			<url>https://imagej.net/people/nickp</url>
 			<roles><role>founder</role></roles>
 			<properties><id>nickp</id></properties>
 		</contributor>
 		<contributor>
 			<name>Johannes Schindelin</name>
-			<url>https://imagej.net/User:Schindelin</url>
+			<url>https://imagej.net/people/dscho</url>
 			<roles><role>founder</role></roles>
 			<properties><id>dscho</id></properties>
 		</contributor>
 		<contributor><name>Gary Baker</name></contributor>
 		<contributor>
 			<name>Albert Cardona</name>
-			<url>https://imagej.net/User:Albertcardona</url>
+			<url>https://imagej.net/people/acardona</url>
 			<properties><id>acardona</id></properties>
 		</contributor>
 		<contributor>
 			<name>Barry DeZonia</name>
-			<url>https://imagej.net/User:Bdezonia</url>
+			<url>https://imagej.net/people/bdezonia</url>
 			<properties><id>bdezonia</id></properties>
 		</contributor>
 		<contributor>
 			<name>Stefan Helfrich</name>
-			<url>https://imagej.net/User:Stelfrich</url>
+			<url>https://imagej.net/people/stelfrich</url>
 			<properties><id>stelfrich</id></properties>
 		</contributor>
 		<contributor>
 			<name>Mark Hiner</name>
-			<url>https://imagej.net/User:Hinerm</url>
+			<url>https://imagej.net/people/hinerm</url>
 			<properties><id>hinerm</id></properties>
 		</contributor>
 		<contributor>
 			<name>Hadrien Mary</name>
-			<url>https://imagej.net/User:Hadim</url>
+			<url>https://imagej.net/people/hadim</url>
 			<properties><id>hadim</id></properties>
 		</contributor>
 		<contributor>
 			<name>Tobias Pietzsch</name>
-			<url>https://imagej.net/User:Pietzsch</url>
+			<url>https://imagej.net/peoplel/pietzsch</url>
 			<properties><id>tpietzsch</id></properties>
 		</contributor>
 		<contributor><name>Barak Naveh</name></contributor>
 		<contributor><name>Chen Ye</name></contributor>
 		<contributor>
 			<name>Robert Haase</name>
-			<url>https://imagej.net/User:Haesleinhuepf</url>
+			<url>https://imagej.net/people/haesleinhuepf</url>
 			<properties><id>haesleinhuepf</id></properties>
 		</contributor>
 		<contributor>
 			<name>Jan Eglinger</name>
-			<url>https://imagej.net/User:Eglinger</url>
+			<url>https://imagej.net/people/imagejan</url>
 			<properties><id>imagejan</id></properties>
 		</contributor>
 	</contributors>
@@ -114,12 +114,12 @@
 	<mailingLists>
 		<mailingList>
 			<name>Image.sc Forum</name>
-			<archive>https://forum.image.sc/tags/fiji</archive>
+			<archive>https://forum.image.sc/tag/fiji</archive>
 		</mailingList>
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/fiji/TrackMate</connection>
+		<connection>scm:git:https://github.com/fiji/TrackMate</connection>
 		<developerConnection>scm:git:git@github.com:fiji/TrackMate</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/fiji/TrackMate</url>
@@ -129,8 +129,8 @@
 		<url>https://github.com/fiji/TrackMate/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Travis CI</system>
-		<url>https://travis-ci.org/fiji/TrackMate</url>
+		<system>GitHub Actions</system>
+		<url>https://github.com/fiji/TrackMate/actions</url>
 	</ciManagement>
 
 	<properties>
@@ -139,9 +139,12 @@
 		<license.copyrightOwners>Fiji developers.</license.copyrightOwners>
 		<license.projectName>Fiji distribution of ImageJ for the life sciences.</license.projectName>
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
-		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 		<!-- NB: Use ImgLib2 style code formatting (https://github.com/scijava/scijava-coding-style) -->
 		<scijava.coding-style>imglib2</scijava.coding-style>
+
+		<fontchooser.version>2.4</fontchooser.version>
+		<javaGeom.version>0.11.1</javaGeom.version>
 	</properties>
 
 	<repositories>
@@ -154,10 +157,6 @@
 	<dependencies>
 		<!-- Fiji dependencies -->
 		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>ij</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>fiji-lib</artifactId>
 		</dependency>
@@ -165,7 +164,11 @@
 		<!-- ImageJ dependencies -->
 		<dependency>
 			<groupId>net.imagej</groupId>
-			<artifactId>imagej-deprecated</artifactId>
+			<artifactId>ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-common</artifactId>
 		</dependency>
 
 		<!-- ImgLib2 dependencies -->
@@ -187,11 +190,11 @@
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-roi</artifactId>
+			<artifactId>imglib2-realtransform</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>sc.fiji</groupId>
-			<artifactId>bigdataviewer-core</artifactId>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-roi</artifactId>
 		</dependency>
 
 		<!-- SciJava dependencies -->
@@ -205,17 +208,30 @@
 		</dependency>
 
 		<!-- Third party dependencies -->
+			
+		<dependency>
+			<groupId>com.github.vlsi.mxgraph</groupId>
+			<artifactId>jgraphx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>itextpdf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>gov.nist.math</groupId>
 			<artifactId>jama</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
+			<groupId>net.sf.trove4j</groupId>
+			<artifactId>trove4j</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
@@ -226,6 +242,11 @@
 			<artifactId>batik-svggen</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.drjekyll</groupId>
+			<artifactId>fontchooser</artifactId>
+			<version>${fontchooser.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.jdom</groupId>
 			<artifactId>jdom2</artifactId>
 		</dependency>
@@ -234,26 +255,17 @@
 			<artifactId>jfreechart</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.vlsi.mxgraph</groupId>
-			<artifactId>jgraphx</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>org.drjekyll</groupId>
-		    <artifactId>fontchooser</artifactId>
-    		<version>2.4</version>
-		</dependency>
-		<dependency>
-			<groupId>com.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
+			<groupId>org.jgrapht</groupId>
+			<artifactId>jgrapht-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>math.geom2d</groupId>
 			<artifactId>javaGeom</artifactId>
-			<version>0.11.1</version>
+			<version>${javaGeom.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
 		</dependency>
 		
 		<!-- Test dependencies -->

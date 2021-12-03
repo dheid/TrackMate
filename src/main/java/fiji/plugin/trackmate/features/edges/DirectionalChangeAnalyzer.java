@@ -52,7 +52,7 @@ public class DirectionalChangeAnalyzer extends AbstractEdgeAnalyzer
 	{
 		FEATURES.add( DIRECTIONAL_CHANGE_RATE );
 		FEATURE_NAMES.put( DIRECTIONAL_CHANGE_RATE, "Directional change rate" );
-		FEATURE_SHORT_NAMES.put( DIRECTIONAL_CHANGE_RATE, "𝛾 rate" );
+		FEATURE_SHORT_NAMES.put( DIRECTIONAL_CHANGE_RATE, "γ rate" );
 		FEATURE_DIMENSIONS.put( DIRECTIONAL_CHANGE_RATE, Dimension.ANGLE_RATE );
 		IS_INT.put( DIRECTIONAL_CHANGE_RATE, Boolean.FALSE );
 	}
@@ -99,13 +99,16 @@ public class DirectionalChangeAnalyzer extends AbstractEdgeAnalyzer
 		Spot predecessor = null;
 		for ( final DefaultWeightedEdge sourceEdge : sourceEdges )
 		{
-			predecessor = model.getTrackModel().getEdgeSource( sourceEdge );
-			if ( predecessor.equals( source ) )
-				predecessor = model.getTrackModel().getEdgeTarget( sourceEdge );
-			
-			if ( predecessor.diffTo( source, Spot.FRAME ) < 0. )
-				nPredecessors++;
+			Spot other = model.getTrackModel().getEdgeTarget( sourceEdge );
+			if ( other.equals( source ) )
+				other = model.getTrackModel().getEdgeSource( sourceEdge );
+
+			if ( other.diffTo( source, Spot.FRAME ) < 0. )
+			{
 				// This is a predecessor edge.
+				nPredecessors++;
+				predecessor = other;
+			}
 		}
 
 		/*
